@@ -4,3 +4,14 @@ This Python based application provides comprehensive telecommunications network 
 
 # Usage
 
+This application is designed to detect and monitor unauthorized phone call activity during examination periods. The system identifies individuals attempting to use mobile devices for cheating purposes by detecting active GSM and UMTS calls within the examination area.
+
+# Hardware Requirement
+
+This code has been tested and optimized for the following hardware configuration:
+
+* Raspberry Pi 5 (Broadcom BCM2712 quad-core Arm Cortex A76 processor).
+* USRP B210 Software Defined Radio.
+
+The B210 SDR collects raw data from the cellular network spectrum, which is then processed by the Raspberry Pi 5 to identify and analyze call activity.
+
