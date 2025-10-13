@@ -1,12 +1,12 @@
-# Project Overview
+# Project Overview 📋
 
 This Python based application provides comprehensive telecommunications network analysis by detecting and monitoring both **GSM** and **UMTS** calls in real time for a very short period of time. The core functionality includes intelligent call detection across multiple network standards, automatic clustering of detected calls based on their respective mobile operators (*Orange*, *IAM*, *Inwi*), and accurate estimation of the total number of active users within a specified range which depend mainely on the antenna type and geometery.
 
-# Usage
+# Usage 🔍
 
 This application is designed to detect and monitor unauthorized phone call activity during examination periods. The system identifies individuals attempting to use mobile devices for cheating purposes by detecting active GSM and UMTS calls within the examination area.
 
-# Hardware Requirement
+# Hardware Requirement 💻
 
 This code has been tested and optimized for the following hardware configuration:
 
