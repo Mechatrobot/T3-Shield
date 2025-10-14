@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# SPDX-License-Identifier: GPL-3.0
-# GNU Radio Python Flow Graph
-# Title: GSM_PVT_Spectrum_Improved
-# GNU Radio version: 3.10.12.0
-
 from PyQt5 import Qt, QtCore
 from gnuradio import qtgui
 from gnuradio import blocks
