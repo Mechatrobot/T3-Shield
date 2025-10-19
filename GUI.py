@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QWidget, QStackedWidget
 from PyQt5.QtGui import QFont, QPainter, QPainterPath, QPixmap, QColor, QPen, QBrush
 from PyQt5.QtCore import Qt, QTimer, QDateTime, QRect
 
@@ -60,7 +60,21 @@ class MainWindow(QMainWindow):
         # Set initial background gradient (green and white)
         self.update_background_gradient()
         
-        self.UI()
+        # Create stacked widget to manage pages
+        self.stacked_widget = QStackedWidget(self)
+        self.setCentralWidget(self.stacked_widget)
+        
+        # Create main page and general analysis page
+        self.main_page = QWidget()
+        self.general_analysis_page = QWidget()
+        
+        # Add pages to stacked widget
+        self.stacked_widget.addWidget(self.main_page)
+        self.stacked_widget.addWidget(self.general_analysis_page)
+        
+        # Setup both pages (general analysis page first to initialize all widgets)
+        self.setup_general_analysis_page()
+        self.setup_main_page()
         
         # Update time every second
         self.timer = QTimer()
@@ -74,9 +88,9 @@ class MainWindow(QMainWindow):
         self.animation_timer.timeout.connect(self.animate_background)
         self.animation_timer.start(100)  # Update every 100ms for smoother/faster animation
         
-    def UI(self):
+    def setup_main_page(self):
         # Logo placeholder (top left) - space for image without border (larger size)
-        self.logo_label = QLabel(self)
+        self.logo_label = QLabel(self.main_page)
         self.logo_label.setGeometry(15, 3, 60, 60)
         self.logo_label.setStyleSheet("background-color: transparent; border-radius: 5px;")
         self.logo_label.setAlignment(Qt.AlignCenter)
@@ -85,7 +99,7 @@ class MainWindow(QMainWindow):
         self.logo_label.setPixmap(logo_pixmap.scaled(60, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         # WiFi icon (iOS style - black) - Custom drawn
-        self.wifi_icon = QLabel(self)
+        self.wifi_icon = QLabel(self.main_page)
         self.wifi_icon.setGeometry(570, 20, 25, 25)
         self.wifi_icon.setStyleSheet("background: transparent;")
         self.wifi_icon.setAlignment(Qt.AlignCenter)
@@ -93,7 +107,7 @@ class MainWindow(QMainWindow):
         self.update_wifi_icon()
         
         # Battery icon (iOS style - black) - Custom drawn
-        self.battery_icon = QLabel(self)
+        self.battery_icon = QLabel(self.main_page)
         self.battery_icon.setGeometry(625, 20, 35, 20)
         self.battery_icon.setStyleSheet("background: transparent;")
         self.battery_icon.setAlignment(Qt.AlignCenter)
@@ -102,7 +116,7 @@ class MainWindow(QMainWindow):
         self.update_battery_icon()
         
         # Settings icon (iOS style gear - black)
-        settings_icon = QPushButton("⚙", self)
+        settings_icon = QPushButton("⚙", self.main_page)
         settings_icon.setGeometry(685, 17, 30, 30)
         settings_icon.setStyleSheet("""
             QPushButton {
@@ -118,7 +132,7 @@ class MainWindow(QMainWindow):
         settings_icon.clicked.connect(self.open_settings)
         
         # Date and time (iOS style - black text)
-        self.datetime_label = QLabel(self)
+        self.datetime_label = QLabel(self.main_page)
         self.datetime_label.setGeometry(740, 17, 50, 30)
         self.datetime_label.setFont(QFont("Arial", 10, QFont.Bold))
         self.datetime_label.setStyleSheet("color: #333333; background: transparent;")
@@ -136,8 +150,9 @@ class MainWindow(QMainWindow):
         start_x = (800 - total_width) // 2
         
         # General Analysis Button
-        self.btn_general = RoundedButton("General\nAnalysis", self)
+        self.btn_general = RoundedButton("General\nAnalysis", self.main_page)
         self.btn_general.setGeometry(start_x, center_y, button_width, button_height)
+        self.btn_general.clicked.connect(self.open_general_analysis)
         
         # Image placeholder for General Analysis button (left side of button)
         self.img_general = QLabel(self.btn_general)
@@ -149,7 +164,7 @@ class MainWindow(QMainWindow):
         self.img_general.setPixmap(img_pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         # Individual Analysis Button
-        self.btn_individual = RoundedButton("Individual\nAnalysis", self)
+        self.btn_individual = RoundedButton("Individual\nAnalysis", self.main_page)
         self.btn_individual.setGeometry(start_x + button_width + button_spacing, center_y, 
                                         button_width, button_height)
         
@@ -163,7 +178,7 @@ class MainWindow(QMainWindow):
         self.img_individual.setPixmap(img_pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         # Hardware Test Button
-        self.btn_hardware = RoundedButton("Hardware\nTest", self)
+        self.btn_hardware = RoundedButton("Hardware\nTest", self.main_page)
         self.btn_hardware.setGeometry(start_x + 2 * (button_width + button_spacing), center_y, 
                                       button_width, button_height)
         
@@ -177,20 +192,20 @@ class MainWindow(QMainWindow):
         self.img_hardware.setPixmap(img_pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         # Version label (bottom left)
-        version_label = QLabel("v1.0.0", self)
+        version_label = QLabel("v1.0.0", self.main_page)
         version_label.setGeometry(20, 440, 100, 30)
         version_label.setFont(QFont("Arial", 10))
         version_label.setStyleSheet("color: rgba(100, 100, 100, 0.8); background: transparent;")
         
         # Copyright label (bottom center)
-        copyright_label = QLabel("@2025. Sensthings.", self)
+        copyright_label = QLabel("@2025. Sensthings.", self.main_page)
         copyright_label.setGeometry(300, 440, 200, 30)
         copyright_label.setFont(QFont("Arial", 10))
         copyright_label.setStyleSheet("color: rgba(100, 100, 100, 0.8); background: transparent;")
         copyright_label.setAlignment(Qt.AlignCenter)
         
         # Help button (circular, bottom right - before shutdown)
-        btn_help = CircularButton("?", self)
+        btn_help = CircularButton("?", self.main_page)
         btn_help.setGeometry(650, 405, 60, 60)
         btn_help.setStyleSheet("""
             QPushButton {
@@ -211,7 +226,7 @@ class MainWindow(QMainWindow):
         btn_help.clicked.connect(self.show_help)
         
         # Circular Shutdown button (bottom right)
-        btn_shutdown = CircularButton("", self)  # Empty text
+        btn_shutdown = CircularButton("", self.main_page)  # Empty text
         btn_shutdown.setGeometry(720, 405, 60, 60)
         btn_shutdown.clicked.connect(self.shutdown)
         
@@ -224,10 +239,124 @@ class MainWindow(QMainWindow):
         shutdown_pixmap = QPixmap("C:/Users/HP/Downloads/OFF.png")
         shutdown_icon.setPixmap(shutdown_pixmap.scaled(40, 40, Qt.KeepAspectRatio, Qt.SmoothTransformation))
     
+    def setup_general_analysis_page(self):
+        # Logo placeholder (top left)
+        self.logo_label_ga = QLabel(self.general_analysis_page)
+        self.logo_label_ga.setGeometry(15, 3, 60, 60)
+        self.logo_label_ga.setStyleSheet("background-color: transparent; border-radius: 5px;")
+        self.logo_label_ga.setAlignment(Qt.AlignCenter)
+        logo_pixmap = QPixmap("C:/Users/HP/Downloads/logo.png")
+        self.logo_label_ga.setPixmap(logo_pixmap.scaled(60, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        
+        # WiFi icon
+        self.wifi_icon_ga = QLabel(self.general_analysis_page)
+        self.wifi_icon_ga.setGeometry(570, 20, 25, 25)
+        self.wifi_icon_ga.setStyleSheet("background: transparent;")
+        self.wifi_icon_ga.setAlignment(Qt.AlignCenter)
+        
+        # Battery icon
+        self.battery_icon_ga = QLabel(self.general_analysis_page)
+        self.battery_icon_ga.setGeometry(625, 20, 35, 20)
+        self.battery_icon_ga.setStyleSheet("background: transparent;")
+        self.battery_icon_ga.setAlignment(Qt.AlignCenter)
+        
+        # Settings icon
+        settings_icon_ga = QPushButton("⚙", self.general_analysis_page)
+        settings_icon_ga.setGeometry(685, 17, 30, 30)
+        settings_icon_ga.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #333333;
+                border: none;
+                font-size: 20px;
+            }
+            QPushButton:hover {
+                color: #007AFF;
+            }
+        """)
+        settings_icon_ga.clicked.connect(self.open_settings)
+        
+        # Date and time
+        self.datetime_label_ga = QLabel(self.general_analysis_page)
+        self.datetime_label_ga.setGeometry(740, 17, 50, 30)
+        self.datetime_label_ga.setFont(QFont("Arial", 10, QFont.Bold))
+        self.datetime_label_ga.setStyleSheet("color: #333333; background: transparent;")
+        self.datetime_label_ga.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        
+        # Back button (top left, next to logo)
+        btn_back = QPushButton("← Back", self.general_analysis_page)
+        btn_back.setGeometry(90, 20, 100, 30)
+        btn_back.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.7);
+                color: #333333;
+                border: none;
+                border-radius: 15px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+            QPushButton:pressed {
+                background-color: rgba(240, 240, 240, 1);
+            }
+        """)
+        btn_back.clicked.connect(self.return_to_main)
+        
+        # Start/Exit button (centered)
+        self.btn_start = QPushButton("START", self.general_analysis_page)
+        self.btn_start.setGeometry(300, 200, 200, 80)
+        self.btn_start.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(76, 175, 80, 0.9);
+                color: white;
+                border: none;
+                border-radius: 40px;
+                font-size: 24px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: rgba(76, 175, 80, 1);
+            }
+            QPushButton:pressed {
+                background-color: rgba(56, 142, 60, 1);
+            }
+        """)
+        self.btn_start.clicked.connect(self.toggle_analysis)
+        self.analysis_running = False
+        
+        # Loading spinner (initially hidden)
+        self.loading_label = QLabel(self.general_analysis_page)
+        self.loading_label.setGeometry(350, 300, 100, 100)
+        self.loading_label.setStyleSheet("background: transparent;")
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.loading_label.hide()
+        
+        # Loading animation variables
+        self.loading_angle = 0
+        self.loading_timer = QTimer()
+        self.loading_timer.timeout.connect(self.update_loading_animation)
+        
+        # Version label (bottom left)
+        version_label_ga = QLabel("v1.0.0", self.general_analysis_page)
+        version_label_ga.setGeometry(20, 440, 100, 30)
+        version_label_ga.setFont(QFont("Arial", 10))
+        version_label_ga.setStyleSheet("color: rgba(100, 100, 100, 0.8); background: transparent;")
+        
+        # Copyright label (bottom center)
+        copyright_label_ga = QLabel("@2025. Sensthings.", self.general_analysis_page)
+        copyright_label_ga.setGeometry(300, 440, 200, 30)
+        copyright_label_ga.setFont(QFont("Arial", 10))
+        copyright_label_ga.setStyleSheet("color: rgba(100, 100, 100, 0.8); background: transparent;")
+        copyright_label_ga.setAlignment(Qt.AlignCenter)
+    
     def update_time(self):
         current_time = QDateTime.currentDateTime()
         time_text = current_time.toString("hh:mm")
         self.datetime_label.setText(time_text)
+        self.datetime_label_ga.setText(time_text)
     
     def update_background_gradient(self):
         """Update the background gradient with animated offset"""
@@ -357,14 +486,10 @@ class MainWindow(QMainWindow):
         import random
         self.wifi_strength = random.randint(0, 100)
         
-        # Draw and set the WiFi icon
+        # Draw and set the WiFi icon for both pages
         pixmap = self.draw_wifi_icon(self.wifi_strength)
         self.wifi_icon.setPixmap(pixmap)
-        
-        # To get actual WiFi signal on Windows:
-        # import subprocess
-        # result = subprocess.check_output(['netsh', 'wlan', 'show', 'interfaces']).decode('utf-8')
-        # Parse for signal strength
+        self.wifi_icon_ga.setPixmap(pixmap)
     
     def update_battery_icon(self):
         # Simulate battery level (0-100)
@@ -373,16 +498,116 @@ class MainWindow(QMainWindow):
         self.battery_level = random.randint(0, 100)
         self.is_charging = random.choice([True, False])
         
-        # Draw and set the battery icon
+        # Draw and set the battery icon for both pages
         pixmap = self.draw_battery_icon(self.battery_level, self.is_charging)
         self.battery_icon.setPixmap(pixmap)
+        self.battery_icon_ga.setPixmap(pixmap)
+    
+    def open_general_analysis(self):
+        print("Opening General Analysis page...")
+        self.stacked_widget.setCurrentWidget(self.general_analysis_page)
+    
+    def return_to_main(self):
+        print("Returning to main page...")
+        self.stacked_widget.setCurrentWidget(self.main_page)
+    
+    def draw_loading_spinner(self, angle):
+        """Draw a rotating loading spinner"""
+        pixmap = QPixmap(100, 100)
+        pixmap.fill(Qt.transparent)
         
-        # To get actual battery level:
-        # import psutil
-        # battery = psutil.sensors_battery()
-        # if battery:
-        #     self.battery_level = battery.percent
-        #     self.is_charging = battery.power_plugged
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Draw circular spinner with rotating segments
+        center_x, center_y = 50, 50
+        radius = 35
+        
+        # Draw 8 segments with varying opacity based on rotation
+        for i in range(8):
+            segment_angle = (angle + i * 45) % 360
+            opacity = 1.0 - (i * 0.1)
+            
+            color = QColor(76, 175, 80)
+            color.setAlphaF(opacity)
+            painter.setBrush(QBrush(color))
+            painter.setPen(Qt.NoPen)
+            
+            # Calculate segment position
+            import math
+            rad = math.radians(segment_angle)
+            x = center_x + radius * math.cos(rad)
+            y = center_y + radius * math.sin(rad)
+            
+            painter.drawEllipse(int(x - 5), int(y - 5), 10, 10)
+        
+        painter.end()
+        return pixmap
+    
+    def update_loading_animation(self):
+        """Update the loading animation"""
+        self.loading_angle = (self.loading_angle + 15) % 360
+        pixmap = self.draw_loading_spinner(self.loading_angle)
+        self.loading_label.setPixmap(pixmap)
+    
+    def toggle_analysis(self):
+        """Toggle between START and EXIT states"""
+        if not self.analysis_running:
+            # Start analysis
+            self.analysis_running = True
+            self.btn_start.setText("EXIT")
+            self.btn_start.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(255, 59, 48, 0.9);
+                    color: white;
+                    border: none;
+                    border-radius: 40px;
+                    font-size: 24px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: rgba(255, 59, 48, 1);
+                }
+                QPushButton:pressed {
+                    background-color: rgba(200, 40, 30, 1);
+                }
+            """)
+            
+            # Show and start loading animation
+            self.loading_label.show()
+            self.loading_timer.start(50)  # Update every 50ms for smooth rotation
+            
+            print("Analysis started...")
+        else:
+            # Stop analysis
+            self.analysis_running = False
+            self.btn_start.setText("START")
+            self.btn_start.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(76, 175, 80, 0.9);
+                    color: white;
+                    border: none;
+                    border-radius: 40px;
+                    font-size: 24px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: rgba(76, 175, 80, 1);
+                }
+                QPushButton:pressed {
+                    background-color: rgba(56, 142, 60, 1);
+                }
+            """)
+            
+            # Hide and stop loading animation
+            self.loading_timer.stop()
+            self.loading_label.hide()
+            
+            print("Analysis stopped...")
+    
+    def start_general_analysis(self):
+        print("Starting General Analysis...")
+        # Add your start analysis functionality here
     
     def open_settings(self):
         print("Settings button clicked!")
